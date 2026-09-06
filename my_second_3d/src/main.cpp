@@ -11,6 +11,10 @@
 const int WIDTH = 800;
 const int HEIGHT = 600;
 
+float yaw = -90.0f;
+float pitch = 0.0f;
+
+glm::vec3 cameraPos(0.0f, 0.0f, 1.0f);
 
 const char* vertexShaderSource = R"(
 #version 460 core
@@ -32,7 +36,7 @@ void main() {
 const char* fragmentShaderSource = R"(
 #version 460 core
 
-in vec3 vertexColor;
+uniform vec3 vertexColor;
 
 out vec4 FragColor;
 
@@ -99,6 +103,17 @@ GLuint createShaderProgram() {
     glDeleteShader(fragmentShader);
 
     return program;
+}
+
+glm::vec3 getCameraFront(float angle){
+    glm::vec3 front;
+
+    front.x = cos(glm::radians(yaw+angle)) * cos(glm::radians(pitch));
+    front.y = sin(glm::radians(pitch));
+    front.z = sin(glm::radians(yaw+angle)) * cos(glm::radians(pitch));
+
+    return glm::normalize(front);
+
 }
 
 int main()
@@ -179,8 +194,10 @@ int main()
     glGenBuffers(1, &EBO);
 
     glBindVertexArray(VAO);
+    
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
@@ -205,12 +222,60 @@ int main()
     GLint modellocation = glGetUniformLocation(shaderProgram, "model");
     GLint viewlocation = glGetUniformLocation(shaderProgram, "view");
     GLint projectionlocation = glGetUniformLocation(shaderProgram,"projection");
+    GLint vertexColorlocation = glGetUniformLocation(shaderProgram,"vertexColor");
 
     while (!glfwWindowShouldClose(window))
-    {
+    {   
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         {
             glfwSetWindowShouldClose(window, true);
+        }
+
+        glm::vec3 cameraFront = getCameraFront(0);
+
+        glm::vec3 worldUP(0.0f, 1.0f, 0.0f);
+
+        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_W) == GLFW_REPEAT)
+        {
+            cameraPos += glm::vec3(0.05f, 0, 0.05f)*getCameraFront(0);
+        }
+        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_A) == GLFW_REPEAT)
+        {
+            cameraPos += glm::vec3(0.05f, 0, 0.05f)*getCameraFront(-90);
+        }
+        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_S) == GLFW_REPEAT)
+        {
+            cameraPos += glm::vec3(0.05f, 0, 0.05f)*getCameraFront(180);
+        }
+        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_D) == GLFW_REPEAT)
+        {
+            cameraPos += glm::vec3(0.05f, 0, 0.05f)*getCameraFront(90);
+        }
+        if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_REPEAT)
+        {
+            cameraPos += glm::vec3(0, 0.05f, 0);
+        }
+        if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_REPEAT)
+        {
+            cameraPos -= glm::vec3(0, 0.05f, 0);
+        }
+
+
+        if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_UP) == GLFW_REPEAT)
+        {
+            pitch += 1.0f;
+        }
+        if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_REPEAT)
+        {
+            pitch -= 1.0f;
+        }
+        if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_REPEAT)
+        {
+            yaw -= 1.0f;
+        }
+        if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_REPEAT)
+        {
+            yaw += 1.0f;
         }
 
         glClearColor(0.05f, 0.05f, 0.08f, 1.0f);
@@ -220,20 +285,38 @@ int main()
         glBindVertexArray(VAO);
 
         float time = glfwGetTime();
-
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::rotate(model, time, glm::vec3(0.5f,1.0f,0.3f));
-
-        glm::mat4 view = glm::mat4(1.0f);
-        view = glm::translate(view, glm::vec3(0.0f,0.0f,-5.0f));
-
         float aspect = (float)(WIDTH) / (float)(HEIGHT);
+
+        //glm::mat4 view = glm::mat4(1.0f);
+        //view = glm::translate(view, glm::vec3(view_pos_x,view_pos_y,view_pos_z));
+        //view = glm::rotate(view, 1.0f, glm::vec3(view_angle_x,view_angle_y,view_angle_z));
+
+        glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, worldUP);
 
         glm::mat4 projection = glm::perspective(glm::radians(45.0f), aspect, 0.1f, 100.0f);
 
-        glUniformMatrix4fv(modellocation, 1, GL_FALSE, glm::value_ptr(model));
+        //первый куб
+        glm::mat4 model1 = glm::mat4(1.0f);
+        model1 = glm::translate(model1, glm::vec3(-1.5f, 0.0f, 0.0f));
+        //model1 = glm::rotate(model1, time*2, glm::vec3(0.0f,0.6f,0.6f));
+
+        glUniformMatrix4fv(modellocation, 1, GL_FALSE, glm::value_ptr(model1));
         glUniformMatrix4fv(viewlocation, 1, GL_FALSE, glm::value_ptr(view));
         glUniformMatrix4fv(projectionlocation, 1, GL_FALSE, glm::value_ptr(projection));
+        glUniform3f(vertexColorlocation, 1.0f, 0.0f, 0.0f);
+
+        glDrawElements(GL_TRIANGLES, (GLsizei)(sizeof(indices) / sizeof(indices[0])), GL_UNSIGNED_INT, nullptr);
+
+
+        //второй куб
+        glm::mat4 model2 = glm::mat4(1.0f);
+        model2 = glm::translate(model2, glm::vec3(-1.5f, 0.0f, 2.0f));
+        //model2 = glm::rotate(model2, time*2, glm::vec3(0.5f,1.0f,0.3f));
+
+        glUniformMatrix4fv(modellocation, 1, GL_FALSE, glm::value_ptr(model2));
+        glUniformMatrix4fv(viewlocation, 1, GL_FALSE, glm::value_ptr(view));
+        glUniformMatrix4fv(projectionlocation, 1, GL_FALSE, glm::value_ptr(projection));
+        glUniform3f(vertexColorlocation, 0.0f, 0.0f, 1.0f);
 
         glDrawElements(GL_TRIANGLES, (GLsizei)(sizeof(indices) / sizeof(indices[0])), GL_UNSIGNED_INT, nullptr);
 
