@@ -1,0 +1,3 @@
+/home/tinerkotl/Projects/C++/my_second_3d/build/CMakeFiles/Triangle.dir
+/home/tinerkotl/Projects/C++/my_second_3d/build/CMakeFiles/edit_cache.dir
+/home/tinerkotl/Projects/C++/my_second_3d/build/CMakeFiles/rebuild_cache.dir
