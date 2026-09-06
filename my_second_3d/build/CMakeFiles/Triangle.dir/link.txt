@@ -1,1 +1,0 @@
-/usr/bin/c++ -Wl,--dependency-file=CMakeFiles/Triangle.dir/link.d CMakeFiles/Triangle.dir/src/main.cpp.o CMakeFiles/Triangle.dir/src/gl.c.o -o Triangle  -lglfw -lGL -ldl -lpthread
