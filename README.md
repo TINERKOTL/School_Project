@@ -9,6 +9,8 @@ glad - 2.0.8
 mesa - 26.2.2-1
 glm - 1.0.3-1
 
+sudo pacman -S glfw glad mesa glm //on Arch
+sudo apt update && sudo apt install glfw glad mesa glm //on Debian/Ubuntu
 
 To launch the project:
 cmake -S . -B build 
