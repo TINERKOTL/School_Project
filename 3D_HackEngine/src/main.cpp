@@ -1,137 +1,37 @@
-#include <glad/gl.h>
-#include <GLFW/glfw3.h>
-
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
 #include "include/API.hpp"
-
-#include <iostream>
-#include <string>
-
-const int WIDTH = 800;
-const int HEIGHT = 600;
-
-float aspect = (float)(WIDTH) / (float)(HEIGHT);
-
-glm::vec3 cameraPos(0.0f, 2.0f, 0.0f);
-
-void framebufferSizeCallback(GLFWwindow* window, int width, int height) {
-    glViewport(0, 0, width, height);
-}
 
 int main()
 {
-    //
-    if (!glfwInit()) {
-        std::cerr << "Не удалось запустить GLFW\n";
-        return -1;
-    }
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    GLFWwindow* window = glfwCreateWindow(800, 600, "OpenGL Triangle", nullptr, nullptr);
-
-    if (!window) {
-        std::cerr << "Не удалось создать окно\n";
-        glfwTerminate();
-        return -1;
-    }
-
-    glfwMakeContextCurrent(window);
-    glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
-
-    if (!gladLoadGL(reinterpret_cast<GLADloadfunc>(glfwGetProcAddress)))
-    {
-        std::cerr << "Не удалось загрузить OpenGL\n";
-        glfwDestroyWindow(window);
-        glfwTerminate();
-        return -1;
-    }
-
-    glEnable(GL_DEPTH_TEST);
-
-    GLuint VAO;
-    GLuint VBO;
-    GLuint EBO;
-
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
-
-    glBindVertexArray(VAO);
-    
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Figure::vertices_cube), Figure::vertices_cube, GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(Figure::indices_cube), Figure::indices_cube, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), nullptr);
-    glEnableVertexAttribArray(0);
-
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), reinterpret_cast<void*>(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-    //Engine_Init() (API)
-    API::init_uniforms();
-
-    float time = glfwGetTime();
+    GLFWwindow* window = API::Init_Engine(); //инициализация многих функций а также мохранение в буффер VAO,VBO,EBO, шейдеров и координат
+    API::Init_Uniforms(); //инициализация переменных которые будут изменяться
 
     while (!glfwWindowShouldClose(window))
     {   
-        if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        {
-            glfwSetWindowShouldClose(window, true);
-        }
+        API::Close_Window(window);
 
-        glm::vec3 cameraFront = API::getCameraFront(0);
+        API::Keys_Movement(window);
 
-        glm::vec3 worldUP(0.0f, 1.0f, 0.0f);
+        API::Clear_Screen(); 
+        API::Vertex_Buffer();
+        
+        glm::mat4 view = API::Create_Camera();
+        glm::mat4 perspective = API::Create_Perspective();
 
-        cameraPos += API::keys_Movement(window, 'W', 0);
-        cameraPos += API::keys_Movement(window, 'A', -90);
-        cameraPos += API::keys_Movement(window, 'S', 180);
-        cameraPos += API::keys_Movement(window, 'D', 90);
+        API::Create_Cube(view, perspective, glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.5f, 0.5f, 0.5f), 1.0f, 0.0f, 1.0f);
 
-        cameraPos += API::keys_Hight(window, GLFW_KEY_SPACE);
-        cameraPos -= API::keys_Hight(window, GLFW_KEY_LEFT_CONTROL);
+        API::Create_Cube(view, perspective, glm::vec3(-3.0f, 0.0f, 0.0f), glm::vec3(0.5f, 0.5f, 0.5f), 0.0f, 1.0f, 0.0f);
 
-        pitch += API::keys_See(window, GLFW_KEY_UP);
-        pitch += API::keys_See(window, GLFW_KEY_DOWN);
-        yaw += API::keys_See(window, GLFW_KEY_LEFT);
-        yaw += API::keys_See(window, GLFW_KEY_RIGHT);
+        API::Create_Platf(view, perspective, glm::vec3(-4.0f, -0.6f, 0.0f), glm::vec3(10.0f, 1.0f, 10.0f), 0.4f, 0.4f, 0.4f);
 
-        glClearColor(0.05f, 0.05f, 0.08f, 1.0f);            //
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //
-                                                            // Clear_Screen() (API)
-        glUseProgram(shaderProgram);                        //
-        glBindVertexArray(VAO);                             //
+        API::Create_Triangle(view, perspective, glm::vec3(0.0f, -0.5f, 0.0f), glm::vec3(0.5f, 0.5f, 0.5f), 1.f, 1.0f, 1.0f);
 
-        glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, worldUP);
+        API::Limitation_View();
 
-        glm::mat4 projection = glm::perspective(glm::radians(45.0f), aspect, 0.1f, 100.0f);
-
-        API::create_Cube(view, projection, glm::vec3(-1.5f, 0.0f, 0.0f), 0.1f, 0.0f, 1.0f);
-        API::create_Cube(view, projection, glm::vec3(-1.5f, 0.0f, 2.0f), 1.0f, 0.0f, 0.0f);
-        API::create_Cube(view, projection, glm::vec3(1.5f, 0.0f, 2.0f), 0.0f, 1.0f, 1.0f);
-
-        pitch = glm::clamp(pitch, -89.0f, 89.0f);
-
-        glfwSwapBuffers(window);
-        glfwPollEvents();
+        API::Clear_Buffer(window);
     }
 
-    //
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);    
-    glDeleteBuffers(1, &EBO);
-    glDeleteProgram(shaderProgram);
+    API::Destroy_Engine(window);
 
-    glfwDestroyWindow(window);
-    glfwTerminate();
-    // Destroy_Engine() (API)
     return 0;
 }
