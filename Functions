@@ -1,0 +1,29 @@
+This file contains all the functions of my API. Be sure to write the API before the: API::"function"
+
+API::Init_Engine()   Initializes the window and writes values to shader and vertex buffers. Returns a window - so assign it to a variable of type GLFWwindow*
+
+API::Init_Uniforms()   Initializes variables that will change for shapes
+
+API::Close_Window(GLFWwindow* window)   Closes the window when the ESC is pressed
+
+API::Keys_Movement(GLFWwindow* window)   Enables camera movement and rotation, everything works by pressing the WASD and Arrow buttons
+
+API::Clear_Screen()   Clears the buffer of colors and shader, or just the screen
+
+API::Vertex_Buffer()   Loads shader buffer
+
+API::Create_Camera()   Creates a camera
+
+API::Create_Perspective()   Creates a perspective for camera
+
+API::Create_Cube()   Creates a cube
+
+API::Create_Platf()   Creates a box or plotform
+
+API::Create_Triangle()   Creates a Pyramid
+
+API::Limitation_View()   Makes a viewing angle limit
+
+API::Clear_Buffer(window)   Clears all buffers
+
+API::Destroy_Engine(window)   Completes the program
