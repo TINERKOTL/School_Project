@@ -2,7 +2,8 @@
 Make school project on C++, use OpenGL + GLFW + GLAD how graphic library
 
 Main file - main.cpp
-API flie - API.hpp
+API file - API.hpp
+Include file - include.hpp
 
 Packages and Library:
 glfw - 3.5.1-1
@@ -14,6 +15,7 @@ sudo pacman -S glfw glad mesa glm //on Arch
 sudo apt update && sudo apt install glfw glad mesa glm //on Debian/Ubuntu
 
 To launch the project:
-cmake -S . -B build 
-cmake --build build
-./build/Triangle
+
+navigate to the folder with CMakeLists and run this command:
+
+rm -rf build && cmake -S . -B build && cmake --build build && ./build/Triangle
