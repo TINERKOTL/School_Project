@@ -53,11 +53,14 @@ GLint modellocation;
 GLint viewlocation;
 GLint projectionlocation;
 GLint vertexColorlocation;
+GLint currentx, currenty;
+GLint xOffset, yOffset;
 GLuint cVAO,cVBO,cEBO;
 GLuint pVAO,pVBO,pEBO;
 GLuint tVAO,tVBO,tEBO;
 
 glm::mat4 count_figure[256];
+glm::mat4 view,perspective;
 
 glm::vec3 cameraPos(0.0f, 2.0f, 0.0f);
 glm::vec3 cameraFront;
@@ -67,9 +70,23 @@ glm::vec3 worldUP(0.0f, 1.0f, 0.0f);
 //float
 float yaw = -90.0f;
 float pitch = 0.0f;
+float Speed;
+float lastMouseX = float(WIDTH)/2;
+float lastMouseY = float(HEIGHT)/2;
+float Mouse_sensitivity = 0.1;
 
 float aspect = (float)(WIDTH) / (float)(HEIGHT);
 
 
 //vector 
 std::vector<float> arr;
+
+
+//bool
+bool firstMouse = true;
+
+
+struct rotate_val {
+    float angle = 0;
+    glm::vec3 axis;
+};

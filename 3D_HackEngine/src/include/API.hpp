@@ -1,6 +1,8 @@
 #pragma once
 
 #include "include.hpp"
+#include <utility>
+
 
 GLuint compileShader(GLenum type, const char* source) {
     GLuint shader = glCreateShader(type);
@@ -69,6 +71,17 @@ void framebufferSizeCallback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
 }
 
+glm::vec3 getCameraFront(float angle){
+        glm::vec3 front;
+
+        front.x = cos(glm::radians(yaw+angle)) * cos(glm::radians(pitch));
+        front.y = sin(glm::radians(pitch));
+        front.z = sin(glm::radians(yaw+angle)) * cos(glm::radians(pitch));
+
+        return glm::normalize(front);
+
+}
+
 void init_cube() {
         glEnable(GL_DEPTH_TEST);
 
@@ -135,6 +148,43 @@ void init_triangle() {
         glEnableVertexAttribArray(1);
 }
 
+void Camera_key(GLFWwindow* window){
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_UP) == GLFW_REPEAT)
+            pitch += 0.8*Speed;
+
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_REPEAT)
+            pitch -= 0.8*Speed;
+
+    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_REPEAT)
+            yaw -= 0.8*Speed;
+
+    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_REPEAT)
+            yaw += 0.8*Speed;
+}
+
+void Camera_mouse(GLFWwindow* window, double xpos, double ypos){
+    currentx = xpos;
+    currenty = ypos;
+
+    if (firstMouse) {
+        lastMouseX = currentx;
+        lastMouseY = currenty;
+        firstMouse = false;
+    }
+
+    xOffset = currentx - lastMouseX;
+    yOffset = lastMouseY - currenty;
+
+    lastMouseX = currentx;
+    lastMouseY = currenty;
+
+    yaw += xOffset*Mouse_sensitivity;
+    pitch += yOffset*Mouse_sensitivity;
+
+    getCameraFront(0);
+}
+
+
 namespace API{
 
     void Init_Uniforms() {
@@ -146,47 +196,39 @@ namespace API{
         vertexColorlocation = glGetUniformLocation(shaderProgram,"vertexColor");
     }
 
-    glm::vec3 getCameraFront(float angle){
-        glm::vec3 front;
+    int Keys_Movement(GLFWwindow* window, int value) {
+        if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_REPEAT)
+            Speed = 2.0f;
+        else 
+            Speed = 1.0f;
 
-        front.x = cos(glm::radians(yaw+angle)) * cos(glm::radians(pitch));
-        front.y = sin(glm::radians(pitch));
-        front.z = sin(glm::radians(yaw+angle)) * cos(glm::radians(pitch));
-
-        return glm::normalize(front);
-
-    }
-
-    int Keys_Movement(GLFWwindow* window) {
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_W) == GLFW_REPEAT)
-                cameraPos += glm::vec3(0.05f, 0, 0.05f)*getCameraFront(0);
+                cameraPos += glm::vec3(0.03f, 0, 0.03f)*glm::normalize(glm::vec3(0.03f, 0, 0.03f)*getCameraFront(0))*glm::vec3(Speed*2);
 
         if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_A) == GLFW_REPEAT)
-                cameraPos += glm::vec3(0.05f, 0, 0.05f)*getCameraFront(-90);
+                cameraPos += glm::vec3(0.03f, 0, 0.03f)*glm::normalize(glm::vec3(0.03f, 0, 0.03f)*getCameraFront(-90))*glm::vec3(Speed*2);
 
         if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_S) == GLFW_REPEAT)
-                cameraPos += glm::vec3(0.05f, 0, 0.05f)*getCameraFront(180);
+                cameraPos += glm::vec3(0.03f, 0, 0.03f)*glm::normalize(glm::vec3(0.03f, 0, 0.03f)*getCameraFront(180))*glm::vec3(Speed*2);
 
         if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_D) == GLFW_REPEAT)
-                cameraPos += glm::vec3(0.05f, 0, 0.05f)*getCameraFront(90);
-
-        if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_UP) == GLFW_REPEAT)
-                pitch += 1;
-
-        if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_REPEAT)
-                pitch -= 1;
-
-        if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_REPEAT)
-                yaw -= 1;
-
-        if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_REPEAT)
-                yaw += 1;
+                cameraPos += glm::vec3(0.03f, 0, 0.03f)*glm::normalize(glm::vec3(0.03f, 0, 0.03f)*getCameraFront(90))*glm::vec3(Speed*2);
         
         if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_REPEAT)
                 cameraPos += glm::vec3(0.0f, 0.05f, 0.0f);
         
         if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_REPEAT)
                 cameraPos -= glm::vec3(0.0f, 0.05f, 0.0f);
+
+        if (value == 0) {
+            glfwSetCursorPosCallback(window, Camera_mouse);
+            if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+                glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+            else
+                glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        }
+        else 
+            Camera_key(window);
 
         return 0;
     }
@@ -198,15 +240,15 @@ namespace API{
         }
     }
 
-    void Create_Cube(glm::mat4 view, glm::mat4 projection, glm::vec3 value, glm::vec3 scale, float r, float g, float b){
+    void Create_Cube(glm::vec3 translate_value, glm::vec3 scale, float r, float g, float b){
 
         glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, value);
+        model = glm::translate(model, translate_value);
         model = glm::scale(model, scale);
 
         glUniformMatrix4fv(modellocation, 1, GL_FALSE, glm::value_ptr(model));
         glUniformMatrix4fv(viewlocation, 1, GL_FALSE, glm::value_ptr(view));
-        glUniformMatrix4fv(projectionlocation, 1, GL_FALSE, glm::value_ptr(projection));
+        glUniformMatrix4fv(projectionlocation, 1, GL_FALSE, glm::value_ptr(perspective));
         glUniform3f(vertexColorlocation, r, g, b);
 
         glBindVertexArray(cVAO);
@@ -214,15 +256,15 @@ namespace API{
         glDrawElements(GL_TRIANGLES, (GLsizei)(sizeof(Figure::indices_cube) / sizeof(Figure::indices_cube[0])), GL_UNSIGNED_INT, nullptr);
     }
 
-    void Create_Platf(glm::mat4 view, glm::mat4 projection, glm::vec3 value, glm::vec3 scale, float r, float g, float b){
+    void Create_Platf(glm::vec3 translate_value, glm::vec3 scale, float r, float g, float b){
 
         glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, value);
+        model = glm::translate(model, translate_value);
         model = glm::scale(model, scale);
 
         glUniformMatrix4fv(modellocation, 1, GL_FALSE, glm::value_ptr(model));
         glUniformMatrix4fv(viewlocation, 1, GL_FALSE, glm::value_ptr(view));
-        glUniformMatrix4fv(projectionlocation, 1, GL_FALSE, glm::value_ptr(projection));
+        glUniformMatrix4fv(projectionlocation, 1, GL_FALSE, glm::value_ptr(perspective));
         glUniform3f(vertexColorlocation, r, g, b);
 
         glBindVertexArray(pVAO);
@@ -230,15 +272,15 @@ namespace API{
         glDrawElements(GL_TRIANGLES, (GLsizei)(sizeof(Figure::indices_paral) / sizeof(Figure::indices_paral[0])), GL_UNSIGNED_INT, nullptr);
     }
 
-    void Create_Triangle(glm::mat4 view, glm::mat4 projection, glm::vec3 value, glm::vec3 scale, float r, float g, float b){
+    void Create_Triangle(glm::vec3 translate_value, glm::vec3 scale, float r, float g, float b){
 
         glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, value);
+        model = glm::translate(model, translate_value);
         model = glm::scale(model, scale);
 
         glUniformMatrix4fv(modellocation, 1, GL_FALSE, glm::value_ptr(model));
         glUniformMatrix4fv(viewlocation, 1, GL_FALSE, glm::value_ptr(view));
-        glUniformMatrix4fv(projectionlocation, 1, GL_FALSE, glm::value_ptr(projection));
+        glUniformMatrix4fv(projectionlocation, 1, GL_FALSE, glm::value_ptr(perspective));
         glUniform3f(vertexColorlocation, r, g, b);
 
         glBindVertexArray(tVAO);
@@ -273,6 +315,7 @@ namespace API{
             glfwTerminate();
         }
 
+
         init_cube();
         init_paral();
         init_triangle();
@@ -288,10 +331,13 @@ namespace API{
     void Destroy_Engine(GLFWwindow* window) {
         glDeleteVertexArrays(1, &cVAO);
         glDeleteVertexArrays(1, &pVAO);
+        glDeleteVertexArrays(1, &tVAO);
         glDeleteBuffers(1, &cVBO);
         glDeleteBuffers(1, &pVBO);
+        glDeleteBuffers(1, &tVBO);
         glDeleteBuffers(1, &cEBO);
         glDeleteBuffers(1, &pEBO);
+        glDeleteBuffers(1, &tEBO);
         glDeleteProgram(shaderProgram);
 
         glfwDestroyWindow(window);
@@ -312,7 +358,7 @@ namespace API{
     }
 
     glm::mat4 Create_Camera() {
-        cameraFront = API::getCameraFront(0);
+        cameraFront = getCameraFront(0);
         return glm::lookAt(cameraPos, cameraPos + cameraFront, worldUP);
     }
 
@@ -321,6 +367,32 @@ namespace API{
     }
 
     void Limitation_View() {
-        pitch = glm::clamp(pitch, -89.0f, 89.0f);
+        pitch = glm::clamp(pitch, -88.0f, 89.0f);
+    }
+
+    void UpdateFPS(GLFWwindow* window) {
+        static double previousTime = glfwGetTime();
+        static int frameCount = 0;
+
+        double currentTime = glfwGetTime();
+        frameCount += 1;
+
+        double elaspedTime = currentTime - previousTime;
+
+        if (elaspedTime >= 1.0) {
+            double fps = frameCount / elaspedTime;
+
+            std::string title = "OpenGL | FPS: " + std::to_string((int)fps);
+
+            glfwSetWindowTitle(window, title.c_str());
+
+            frameCount = 0;
+            previousTime = currentTime;
+        }
+    }
+
+    void init_Camera() {
+        view = API::Create_Camera();
+        perspective = API::Create_Perspective();
     }
 };
