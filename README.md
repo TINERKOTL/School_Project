@@ -19,3 +19,5 @@ To launch the project:
 navigate to the folder with CMakeLists and run this command:
 
 rm -rf build && cmake -S . -B build && cmake --build build && ./build/Triangle
+
+<img width="1276" height="748" alt="image" src="https://github.com/user-attachments/assets/5136cd2d-f2bb-40ce-85ec-77619d8d3635" />
